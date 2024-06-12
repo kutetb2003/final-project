@@ -1,23 +1,24 @@
 /* eslint-disable no-console */
 
 import express from 'express'
-import { CONNECT_DB, GET_DB } from '~/config/mongodb'
-import { mapOrder } from '~/utils/sorts.js'
+import { CONNECT_DB, GET_DB, CLOSE_DB } from '~/config/mongodb'
+import exitHook from 'async-exit-hook'
+import { env } from '~/config/environment'
+import { APIs_V1 } from '~/routes/v1'
 
 const START_SERVER = () => {
   const app = express()
 
-  const hostname = 'localhost'
-  const port = 1609
-
-  app.get('/', async (req, res) => {
-    console.log(await GET_DB().listCollections().toArray())
-    res.end('<h1>Hello World!</h1><hr>')
-  })
-
-  app.listen(port, hostname, () => {
+  app.use('/v1', APIs_V1)
+  
+  app.listen(env.APP_PORT, env.APP_HOST, () => {
     // eslint-disable-next-line no-console
-    console.log(`Hello Smeap, I am running at ${hostname}:${port}/`)
+    console.log(`Hello ${env.AUTHOR}, I am running at ${env.APP_HOST}:${env.APP_PORT}/`)
+  })
+  exitHook(() => {
+    console.log('Disconnecting from Db ATLAS')
+    CLOSE_DB()
+    console.log('Disonnected from db ATLAS')
   })
 }
 
@@ -40,3 +41,4 @@ const START_SERVER = () => {
 //     console.error(error)
 //     process.exit(0)
 //   })
+
